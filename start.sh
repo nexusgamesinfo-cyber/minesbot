@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "======================================"
-echo " Starting Mines Bot"
-echo "======================================"
+echo "Starting MinesBot Discord Bot..."
 
-# Start the bot
-echo "Starting bot..."
 python mines.py
-
