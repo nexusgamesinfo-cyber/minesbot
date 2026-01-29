@@ -114,7 +114,7 @@ def is_spam(uid, limit):
 @bot.event
 async def on_ready():
     await tree.sync()
-    await bot.change_presence(activity=discord.Game(name="m;help | Arcane XP"))
+    await bot.change_presence(activity=discord.Game(name="/help"))
     print(f"Logged in as {bot.user}")
 
 @bot.event
@@ -356,3 +356,4 @@ async def say(interaction: discord.Interaction, message: str):
 # ================= RUN =================
 
 bot.run(TOKEN)
+
