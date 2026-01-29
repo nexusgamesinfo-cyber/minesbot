@@ -33,7 +33,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-poke2.gif"
         ]
     },
-
     "kiss": {
         "emoji": "💋",
         "color": discord.Color.red(),
@@ -45,7 +44,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-soft-kiss.gif"
         ]
     },
-
     "pat": {
         "emoji": "🫳",
         "color": discord.Color.green(),
@@ -57,7 +55,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-pat.gif"
         ]
     },
-
     "punch": {
         "emoji": "👊",
         "color": discord.Color.orange(),
@@ -69,7 +66,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-punch-attack.gif"
         ]
     },
-
     "bite": {
         "emoji": "🦷",
         "color": discord.Color.dark_red(),
@@ -81,7 +77,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-bite-chomp.gif"
         ]
     },
-
     "hug": {
         "emoji": "🤗",
         "color": discord.Color.blurple(),
@@ -93,7 +88,6 @@ ACTIONS = {
             "https://media.tenor.com/anime-tight-hug.gif"
         ]
     },
-
     "slap": {
         "emoji": "🖐️",
         "color": discord.Color.dark_orange(),
@@ -149,6 +143,33 @@ async def perform_action(author, target, action_name, send_func):
 
     await send_func(embed=embed)
 
+# --------------------
+# ACTION COMMAND FACTORY (FIXED)
+# --------------------
+def create_action_command(action_name: str):
+    @app_commands.command(
+        name=action_name,
+        description=f"{action_name.capitalize()} someone"
+    )
+    async def action_cmd(
+        interaction: discord.Interaction,
+        user: discord.User
+    ):
+        await perform_action(
+            interaction.user,
+            user,
+            action_name,
+            interaction.response.send_message
+        )
+
+    return action_cmd
+
+for action in ACTIONS.keys():
+    tree.add_command(create_action_command(action))
+
+# --------------------
+# SHIP STORAGE
+# --------------------
 SHIP_FILE = "ships.json"
 
 def load_ships() -> dict:
@@ -163,14 +184,6 @@ def save_ships(data: dict) -> None:
 
 def get_ship_key(user1_id: int, user2_id: int) -> str:
     return "-".join(map(str, sorted((user1_id, user2_id))))
-
-# --------------------
-# ACTION SLASH COMMANDS
-# --------------------
-for name in ACTIONS.keys():
-    @tree.command(name=name, description=f"{name.capitalize()} someone")
-    async def _action(interaction: discord.Interaction, user: discord.User, action=name):
-        await perform_action(interaction.user, user, action, interaction.response.send_message)
 
 # --------------------
 # FUN SLASH COMMANDS
@@ -227,16 +240,6 @@ async def eightball(interaction: discord.Interaction, question: str):
     ]
 
     await interaction.response.send_message(f"🎱 **Question:** {question}\n**Answer:** {random.choice(responses)}")
-
-@tree.command(name="rps")
-async def rps(interaction: discord.Interaction, choice: str):
-    options = ["rock", "paper", "scissors"]
-    bot_choice = random.choice(options)
-    await interaction.response.send_message(f"🪨📄✂️ You: **{choice}** | Bot: **{bot_choice}**")
-
-@tree.command(name="number")
-async def number(interaction: discord.Interaction):
-    await interaction.response.send_message(f"🔢 Random number: **{random.randint(0, 9999)}**")
 
 @tree.command(name="joke")
 async def joke(interaction: discord.Interaction):
@@ -306,24 +309,7 @@ async def roast(interaction: discord.Interaction, user: discord.User):
 
     await interaction.response.send_message(f"🔥 {user.mention} {random.choice(roasts)}")
 
-@tree.command(name="ship")
-async def ship(interaction: discord.Interaction, user1: discord.User, user2: discord.User):
-    await interaction.response.send_message(f"💖 Ship rate: **{random.randint(0,100)}%**")
-
-@tree.command(name="choose")
-async def choose(interaction: discord.Interaction, choices: str):
-    options = [c.strip() for c in choices.split(",")]
-    await interaction.response.send_message(f"🤔 I choose **{random.choice(options)}**")
-
-@tree.command(name="reverse")
-async def reverse(interaction: discord.Interaction, text: str):
-    await interaction.response.send_message(text[::-1])
-
-@tree.command(name="rate")
-async def rate(interaction: discord.Interaction, thing: str):
-    await interaction.response.send_message(f"⭐ **{thing}** is rated **{random.randint(0,10)}/10**")
-
-@app_commands.command(name="ship", description="Ship two users together 💖")
+@tree.command(name="ship", description="Ship two users together 💖")
 async def ship(interaction: discord.Interaction, user1: discord.User, user2: discord.User):
     ships = load_ships()
     key = get_ship_key(user1.id, user2.id)
@@ -358,6 +344,29 @@ async def ship(interaction: discord.Interaction, user1: discord.User, user2: dis
 
     await interaction.response.send_message(embed=embed)
 
+@tree.command(name="choose")
+async def choose(interaction: discord.Interaction, choices: str):
+    options = [c.strip() for c in choices.split(",")]
+    await interaction.response.send_message(f"🤔 I choose **{random.choice(options)}**")
+
+@tree.command(name="reverse")
+async def reverse(interaction: discord.Interaction, text: str):
+    await interaction.response.send_message(text[::-1])
+
+@tree.command(name="rate")
+async def rate(interaction: discord.Interaction, thing: str):
+    await interaction.response.send_message(f"⭐ **{thing}** is rated **{random.randint(0,10)}/10**")
+
+@tree.command(name="rps")
+async def rps(interaction: discord.Interaction, choice: str):
+    options = ["rock", "paper", "scissors"]
+    bot_choice = random.choice(options)
+    await interaction.response.send_message(f"🪨📄✂️ You: **{choice}** | Bot: **{bot_choice}**")
+
+@tree.command(name="number")
+async def number(interaction: discord.Interaction):
+    await interaction.response.send_message(f"🔢 Random number: **{random.randint(0, 9999)}**")
+
 # --------------------
 # HELP COMMAND
 # --------------------
@@ -373,11 +382,7 @@ async def help(ctx):
 
     embed.add_field(
         name="🎮 Fun",
-        value=(
-            "`/ping` `/coinflip` `/roll` `/dice` `/8ball`\n"
-            "`/rps` `/number` `/joke` `/roast`\n"
-            "`/ship` `/choose` `/reverse` `/rate`"
-        ),
+        value="`/ping` `/coinflip` `/roll` `/dice` `/8ball` `/joke` `/roast` `/ship` `/choose` `/reverse` `/rate` `/number` `/rps`",
         inline=False
     )
 
@@ -390,7 +395,5 @@ async def help(ctx):
 async def on_ready():
     await tree.sync()
     print(f"Logged in as {bot.user}")
-
-bot.run(TOKEN)
 
 bot.run(TOKEN)
