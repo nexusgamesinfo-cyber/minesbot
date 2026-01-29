@@ -50,78 +50,83 @@ ACTIONS = {
             "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-poke.gif",
             "https://media.tenor.com/kK6v0Z7Yt0QAAAAC/poke-anime.gif",
             "https://media.tenor.com/4uEw0G5ZK1QAAAAC/poke-cute.gif",
-            "https://media.tenor.com/9R.gif",
-            "https://media.tenor.com/anime-poke2.gif"
+            "https://media.tenor.com/y8Z0zXzX5N8AAAAC/anime-poke.gif",
+            "https://media.tenor.com/Lz1v9U7R8nQAAAAC/anime-poke.gif"
         ]
     },
+
     "kiss": {
         "emoji": "💋",
         "color": discord.Color.red(),
         "gifs": [
             "https://media.tenor.com/0AVbKGY_MxMAAAAC/anime-kiss.gif",
             "https://media.tenor.com/2VZ8sZkWbFQAAAAC/kiss-anime.gif",
-            "https://media.tenor.com/anime-kiss-love.gif",
-            "https://media.tenor.com/anime-couple-kiss.gif",
-            "https://media.tenor.com/anime-soft-kiss.gif"
+            "https://media.tenor.com/9KQK7XyZ7X0AAAAC/anime-kiss.gif",
+            "https://media.tenor.com/Yu7F8KQk0oUAAAAC/anime-kiss.gif",
+            "https://media.tenor.com/F8Z7qXxZ3S4AAAAC/anime-kiss.gif"
         ]
     },
+
     "pat": {
         "emoji": "🫳",
         "color": discord.Color.green(),
         "gifs": [
             "https://media.tenor.com/2roX3uxz_68AAAAC/anime-head-pat.gif",
             "https://media.tenor.com/FpF3X7XoH7UAAAAC/pat-anime.gif",
-            "https://media.tenor.com/anime-pat-cute.gif",
-            "https://media.tenor.com/anime-headpat.gif",
-            "https://media.tenor.com/anime-pat.gif"
+            "https://media.tenor.com/7l3n6bYqJ6AAAAAC/anime-pat.gif",
+            "https://media.tenor.com/0GJYx2x8cK0AAAAC/anime-headpat.gif",
+            "https://media.tenor.com/2mF6bZ9x8fUAAAAC/anime-pat.gif"
         ]
     },
+
     "punch": {
         "emoji": "👊",
         "color": discord.Color.orange(),
         "gifs": [
             "https://media.tenor.com/l1xTnYH9D7sAAAAC/anime-punch.gif",
             "https://media.tenor.com/0vR2rjv4JkUAAAAC/punch-anime.gif",
-            "https://media.tenor.com/anime-fight-punch.gif",
-            "https://media.tenor.com/anime-angry-punch.gif",
-            "https://media.tenor.com/anime-punch-attack.gif"
+            "https://media.tenor.com/Ws6Dm1ZWkWEAAAAC/anime-punch.gif",
+            "https://media.tenor.com/4MGCj5x8gHAAAAAC/anime-punch.gif",
+            "https://media.tenor.com/JG9m7cY2Zp8AAAAC/anime-punch.gif"
         ]
     },
+
     "bite": {
         "emoji": "🦷",
         "color": discord.Color.dark_red(),
         "gifs": [
-            "https://media.tenor.com/anime-bite.gif",
-            "https://media.tenor.com/anime-cute-bite.gif",
-            "https://media.tenor.com/anime-love-bite.gif",
-            "https://media.tenor.com/anime-angry-bite.gif",
-            "https://media.tenor.com/anime-bite-chomp.gif"
+            "https://media.tenor.com/1Yw3sPp5kYcAAAAC/anime-bite.gif",
+            "https://media.tenor.com/q8K5J5K0YgAAAAAC/anime-bite.gif",
+            "https://media.tenor.com/0m7X8bZ8sLAAAAAC/anime-bite.gif",
+            "https://media.tenor.com/5Zc8Z9Z9Z9AAAAC/anime-bite.gif",
+            "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-bite.gif"
         ]
     },
+
     "hug": {
         "emoji": "🤗",
         "color": discord.Color.blurple(),
         "gifs": [
-            "https://media.tenor.com/anime-hug.gif",
-            "https://media.tenor.com/anime-cuddle-hug.gif",
-            "https://media.tenor.com/anime-friends-hug.gif",
-            "https://media.tenor.com/anime-warm-hug.gif",
-            "https://media.tenor.com/anime-tight-hug.gif"
+            "https://media.tenor.com/Ct6J9Y6iJb8AAAAC/anime-hug.gif",
+            "https://media.tenor.com/7l3n6bYqJ6AAAAAC/anime-hug.gif",
+            "https://media.tenor.com/0GJYx2x8cK0AAAAC/anime-hug.gif",
+            "https://media.tenor.com/2mF6bZ9x8fUAAAAC/anime-hug.gif",
+            "https://media.tenor.com/x7yKZ9Z8AAAAC/anime-hug.gif"
         ]
     },
+
     "slap": {
         "emoji": "🖐️",
         "color": discord.Color.dark_orange(),
         "gifs": [
-            "https://media.tenor.com/anime-slap.gif",
-            "https://media.tenor.com/anime-angry-slap.gif",
-            "https://media.tenor.com/anime-face-slap.gif",
-            "https://media.tenor.com/anime-comedy-slap.gif",
-            "https://media.tenor.com/anime-slap-attack.gif"
+            "https://media.tenor.com/Ws6Dm1ZWkWEAAAAC/anime-slap.gif",
+            "https://media.tenor.com/4MGCj5x8gHAAAAAC/anime-slap.gif",
+            "https://media.tenor.com/5u3J1Y5nX0QAAAAC/slap-anime.gif",
+            "https://media.tenor.com/JG9m7cY2Zp8AAAAC/anime-slap.gif",
+            "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-slap.gif"
         ]
     }
 }
-
 # --------------------
 # STORAGE
 # --------------------
@@ -422,4 +427,5 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
+
 
