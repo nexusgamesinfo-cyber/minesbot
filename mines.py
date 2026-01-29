@@ -1,496 +1,396 @@
-# pyright: reportOptionalMemberAccess=false
-# pyright: reportUnknownArgumentType=false
-# pyright: reportUnknownMemberType=false
-
 import discord
 from discord.ext import commands
 from discord import app_commands
+import os
+import json
+import random
 from dotenv import load_dotenv
-from PIL import Image, ImageDraw, ImageFont
-from datetime import timedelta
-import json, os, random, io, time, requests
 
-# ================= ENV =================
-
+# --------------------
+# Setup
+# --------------------
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
-if not TOKEN:
-    raise RuntimeError("DISCORD_TOKEN missing")
-
-# ================= FILES =================
-
-XP_FILE = "xp.json"
-SETTINGS_FILE = "settings.json"
-WARN_FILE = "warns.json"
-
-# ================= INTENTS =================
 
 intents = discord.Intents.default()
-intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="m;", intents=intents)
 tree = bot.tree
 
-# ================= JSON =================
+# --------------------
+# ACTION SYSTEM
+# --------------------
+ACTIONS = {
+    "poke": {
+        "emoji": "👉",
+        "color": discord.Color.purple(),
+        "gifs": [
+            "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-poke.gif",
+            "https://media.tenor.com/kK6v0Z7Yt0QAAAAC/poke-anime.gif",
+            "https://media.tenor.com/4uEw0G5ZK1QAAAAC/poke-cute.gif",
+            "https://media.tenor.com/9R.gif",
+            "https://media.tenor.com/anime-poke2.gif"
+        ]
+    },
 
-def load_json(file, default):
+    "kiss": {
+        "emoji": "💋",
+        "color": discord.Color.red(),
+        "gifs": [
+            "https://media.tenor.com/0AVbKGY_MxMAAAAC/anime-kiss.gif",
+            "https://media.tenor.com/2VZ8sZkWbFQAAAAC/kiss-anime.gif",
+            "https://media.tenor.com/anime-kiss-love.gif",
+            "https://media.tenor.com/anime-couple-kiss.gif",
+            "https://media.tenor.com/anime-soft-kiss.gif"
+        ]
+    },
+
+    "pat": {
+        "emoji": "🫳",
+        "color": discord.Color.green(),
+        "gifs": [
+            "https://media.tenor.com/2roX3uxz_68AAAAC/anime-head-pat.gif",
+            "https://media.tenor.com/FpF3X7XoH7UAAAAC/pat-anime.gif",
+            "https://media.tenor.com/anime-pat-cute.gif",
+            "https://media.tenor.com/anime-headpat.gif",
+            "https://media.tenor.com/anime-pat.gif"
+        ]
+    },
+
+    "punch": {
+        "emoji": "👊",
+        "color": discord.Color.orange(),
+        "gifs": [
+            "https://media.tenor.com/l1xTnYH9D7sAAAAC/anime-punch.gif",
+            "https://media.tenor.com/0vR2rjv4JkUAAAAC/punch-anime.gif",
+            "https://media.tenor.com/anime-fight-punch.gif",
+            "https://media.tenor.com/anime-angry-punch.gif",
+            "https://media.tenor.com/anime-punch-attack.gif"
+        ]
+    },
+
+    "bite": {
+        "emoji": "🦷",
+        "color": discord.Color.dark_red(),
+        "gifs": [
+            "https://media.tenor.com/anime-bite.gif",
+            "https://media.tenor.com/anime-cute-bite.gif",
+            "https://media.tenor.com/anime-love-bite.gif",
+            "https://media.tenor.com/anime-angry-bite.gif",
+            "https://media.tenor.com/anime-bite-chomp.gif"
+        ]
+    },
+
+    "hug": {
+        "emoji": "🤗",
+        "color": discord.Color.blurple(),
+        "gifs": [
+            "https://media.tenor.com/anime-hug.gif",
+            "https://media.tenor.com/anime-cuddle-hug.gif",
+            "https://media.tenor.com/anime-friends-hug.gif",
+            "https://media.tenor.com/anime-warm-hug.gif",
+            "https://media.tenor.com/anime-tight-hug.gif"
+        ]
+    },
+
+    "slap": {
+        "emoji": "🖐️",
+        "color": discord.Color.dark_orange(),
+        "gifs": [
+            "https://media.tenor.com/anime-slap.gif",
+            "https://media.tenor.com/anime-angry-slap.gif",
+            "https://media.tenor.com/anime-face-slap.gif",
+            "https://media.tenor.com/anime-comedy-slap.gif",
+            "https://media.tenor.com/anime-slap-attack.gif"
+        ]
+    }
+}
+
+# --------------------
+# STORAGE
+# --------------------
+def load_action_data(action):
+    file = f"{action}.json"
     if not os.path.exists(file):
-        return default
-    with open(file, "r", encoding="utf-8") as f:
+        return {}
+    with open(file, "r") as f:
         return json.load(f)
 
-def save_json(file, data):
-    with open(file, "w", encoding="utf-8") as f:
+def save_action_data(action, data):
+    with open(f"{action}.json", "w") as f:
         json.dump(data, f, indent=4)
 
-xp_data = load_json(XP_FILE, {})
-settings = load_json(SETTINGS_FILE, {})
-warns = load_json(WARN_FILE, {})
-
-# ================= SETTINGS =================
-
-def get_guild_settings(gid):
-    gid = str(gid)
-    if gid not in settings:
-        settings[gid] = {
-            "welcome": None,
-            "goodbye": None,
-            "level": None,
-            "modlog": None,
-            "autoroles": [],
-            "antilinks": False,
-            "spam_limit": 5
-        }
-    return settings[gid]
-
-# ================= MOD LOG =================
-
-async def modlog(guild, embed):
-    gs = get_guild_settings(guild.id)
-    if gs["modlog"]:
-        ch = guild.get_channel(gs["modlog"])
-        if ch:
-            await ch.send(embed=embed)
-
-# ================= XP SYSTEM =================
-
-XP_COOLDOWN = {}
-
-def add_xp(uid, gid, amount):
-    key = f"{gid}-{uid}"
-    xp_data.setdefault(key, {"xp": 0, "level": 1})
-    xp_data[key]["xp"] += amount
-    needed = xp_data[key]["level"] * 100
-    leveled = False
-    if xp_data[key]["xp"] >= needed:
-        xp_data[key]["xp"] -= needed
-        xp_data[key]["level"] += 1
-        leveled = True
-    save_json(XP_FILE, xp_data)
-    return leveled, xp_data[key]
-
-# ================= WARN SYSTEM =================
-
-def add_warn(gid, uid, reason):
-    warns.setdefault(str(gid), {}).setdefault(str(uid), []).append(reason)
-    save_json(WARN_FILE, warns)
-
-def get_warns(gid, uid):
-    return warns.get(str(gid), {}).get(str(uid), [])
-
-# ================= AUTO MOD =================
-
-spam_tracker = {}
-
-def is_spam(uid, limit):
-    now = time.time()
-    spam_tracker.setdefault(uid, []).append(now)
-    spam_tracker[uid] = [t for t in spam_tracker[uid] if now - t < 10]
-    return len(spam_tracker[uid]) > limit
-
-# ================= EVENTS =================
-
-@bot.event
-async def on_ready():
-    await tree.sync()
-    await bot.change_presence(activity=discord.Game(name="/help"))
-    print(f"Logged in as {bot.user}")
-
-@bot.event
-async def on_message(message):
-    if message.author.bot or not message.guild:
+# --------------------
+# CORE ACTION HANDLER
+# --------------------
+async def perform_action(author, target, action_name, send_func):
+    if target.id == author.id:
+        await send_func("😅 You can’t do that to yourself!")
         return
 
-    gs = get_guild_settings(message.guild.id)
+    data = load_action_data(action_name)
+    uid = str(target.id)
+    data[uid] = data.get(uid, 0) + 1
+    save_action_data(action_name, data)
 
-    # XP
-    now = time.time()
-    key = f"{message.guild.id}-{message.author.id}"
-    if XP_COOLDOWN.get(key, 0) < now:
-        XP_COOLDOWN[key] = now + 60
-        leveled, data = add_xp(message.author.id, message.guild.id, random.randint(5, 10))
-        if leveled and gs["level"]:
-            ch = message.guild.get_channel(gs["level"])
-            if ch:
-                await ch.send(f"🎉 {message.author.mention} reached **Level {data['level']}**!")
+    action = ACTIONS[action_name]
 
-    # Anti-links
-    if gs["antilinks"] and ("http://" in message.content or "https://" in message.content):
-        await message.delete()
-        await message.channel.send(f"🚫 {message.author.mention} links are not allowed")
-        await modlog(message.guild, discord.Embed(
-            title="AutoMod | Link",
-            description=f"{message.author} posted a link",
-            color=discord.Color.red()
-        ))
-        return
-
-    # Spam
-    if is_spam(message.author.id, gs["spam_limit"]):
-        until = discord.utils.utcnow() + timedelta(minutes=5)
-        await message.author.timeout(until, reason="AutoMod: Spam")
-        await modlog(message.guild, discord.Embed(
-            title="AutoMod | Spam",
-            description=f"{message.author} timed out",
-            color=discord.Color.red()
-        ))
-        return
-
-    # Fun triggers
-    triggers = {
-        "banana": "🍌 Secret banana unlocked!",
-        "who asked": "💀 nobody",
-        "skill issue": "🎯 confirmed skill issue"
-    }
-
-    for k, v in triggers.items():
-        if k in message.content.lower():
-            await message.channel.send(v)
-
-    await bot.process_commands(message)
-
-# ================= HELP COMMAND =================
-
-@tree.command(name="help", description="Show all bot commands")
-async def help_cmd(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="📖 Bot Commands",
-        description="Here’s what I can do:",
-        color=discord.Color.blurple()
+        title=f"{action['emoji']} {action_name.upper()}!",
+        description=(
+            f"**{author.name}** {action_name}ed **{target.name}**!\n\n"
+            f"📊 **Total times {action_name}ed:** `{data[uid]}`"
+        ),
+        color=action["color"]
+    )
+    embed.set_image(url=random.choice(action["gifs"]))
+    embed.set_footer(text="Fun commands 🎮")
+
+    await send_func(embed=embed)
+
+SHIP_FILE = "ships.json"
+
+def load_ships() -> dict:
+    if not os.path.exists(SHIP_FILE):
+        return {}
+    with open(SHIP_FILE, "r") as f:
+        return json.load(f)
+
+def save_ships(data: dict) -> None:
+    with open(SHIP_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+def get_ship_key(user1_id: int, user2_id: int) -> str:
+    return "-".join(map(str, sorted((user1_id, user2_id))))
+
+# --------------------
+# ACTION SLASH COMMANDS
+# --------------------
+for name in ACTIONS.keys():
+    @tree.command(name=name, description=f"{name.capitalize()} someone")
+    async def _action(interaction: discord.Interaction, user: discord.User, action=name):
+        await perform_action(interaction.user, user, action, interaction.response.send_message)
+
+# --------------------
+# FUN SLASH COMMANDS
+# --------------------
+@tree.command(name="ping")
+async def ping(interaction: discord.Interaction):
+    await interaction.response.send_message(f"🏓 Pong! `{round(bot.latency * 1000)}ms`")
+
+@tree.command(name="coinflip")
+async def coinflip(interaction: discord.Interaction):
+    await interaction.response.send_message(f"🪙 **{random.choice(['Heads', 'Tails'])}**")
+
+@tree.command(name="roll")
+async def roll(interaction: discord.Interaction, max: int = 100):
+    await interaction.response.send_message(f"🎲 You rolled **{random.randint(1, max)}**")
+
+@tree.command(name="dice")
+async def dice(interaction: discord.Interaction):
+    await interaction.response.send_message(f"🎲 Dice rolled: **{random.randint(1,6)}**")
+
+@tree.command(name="8ball")
+async def eightball(interaction: discord.Interaction, question: str):
+    responses = [
+        # Positive
+        "It is certain",
+        "It is decidedly so",
+        "Without a doubt",
+        "Yes – definitely",
+        "You may rely on it",
+        "As I see it, yes",
+        "Most likely",
+        "Outlook good",
+        "Yes",
+        "Signs point to yes",
+
+        # Neutral / Unclear
+        "Reply hazy, try again",
+        "Ask again later",
+        "Better not tell you now",
+        "Cannot predict now",
+        "Concentrate and ask again",
+        "Maybe",
+        "Hard to say",
+        "Could go either way",
+
+        # Negative
+        "Don’t count on it",
+        "My reply is no",
+        "My sources say no",
+        "Outlook not so good",
+        "Very doubtful",
+        "Absolutely not",
+        "No chance"
+    ]
+
+    await interaction.response.send_message(f"🎱 **Question:** {question}\n**Answer:** {random.choice(responses)}")
+
+@tree.command(name="rps")
+async def rps(interaction: discord.Interaction, choice: str):
+    options = ["rock", "paper", "scissors"]
+    bot_choice = random.choice(options)
+    await interaction.response.send_message(f"🪨📄✂️ You: **{choice}** | Bot: **{bot_choice}**")
+
+@tree.command(name="number")
+async def number(interaction: discord.Interaction):
+    await interaction.response.send_message(f"🔢 Random number: **{random.randint(0, 9999)}**")
+
+@tree.command(name="joke")
+async def joke(interaction: discord.Interaction):
+    jokes = [
+        # Tech
+        "Why did the dev quit? Too many bugs 🐛",
+        "I told my PC a joke… it froze 💀",
+        "My code works and I don’t know why 😎",
+        "Debugging is just arguing with yourself",
+        "I pressed F5 and hoped for the best 🙏",
+
+        # Gaming
+        "Lag is just the game giving you time to think 🎮",
+        "Skill issue? No. Server issue.",
+        "I didn’t lose — I was gathering data",
+        "NPCs have better pathfinding than me",
+        "Tutorial boss hardest boss",
+
+        # Life
+        "I need a 6-month break after a 10-minute task",
+        "I’m not lazy, I’m on energy-saving mode 🔋",
+        "Sleep is just a free trial I never get",
+        "I put something somewhere safe… it’s gone forever",
+        "Why is doing nothing so exhausting?",
+
+        # Chaos / Random
+        "I stared at the fridge for food ideas. Still hungry.",
+        "I blinked and the day was over",
+        "Nothing is on fire — suspicious",
+        "This joke was loading… please wait ⏳",
+        "I had a thought. It left."
+    ]
+
+    await interaction.response.send_message(random.choice(jokes))
+
+@tree.command(name="roast")
+async def roast(interaction: discord.Interaction, user: discord.User):
+    roasts = [
+        # Tech
+        "Built like unoptimized code 💀",
+        "Runs on Internet Explorer energy 🐌",
+        "More bugs than a beta release 🐛",
+        "One typo away from disaster",
+        "Even Stack Overflow sighed",
+
+        # Gaming
+        "Tutorial boss energy",
+        "Would lose a fight with a loading screen ⏳",
+        "Lag didn’t save you this time",
+        "NPC behavior detected",
+        "Still waiting for the respawn",
+
+        # Life
+        "Has alarm clocks but no motivation ⏰",
+        "Survives entirely on vibes",
+        "Confidence of someone who didn’t read the instructions",
+        "Built different… unfortunately",
+        "Runs on caffeine and bad decisions",
+
+        # Chaos
+        "If confusion were a sport, you’d medal",
+        "Main character in the wrong timeline",
+        "No thoughts, just vibes",
+        "Even chaos is confused",
+        "This roast was handcrafted 🧯"
+    ]
+
+    await interaction.response.send_message(f"🔥 {user.mention} {random.choice(roasts)}")
+
+@tree.command(name="ship")
+async def ship(interaction: discord.Interaction, user1: discord.User, user2: discord.User):
+    await interaction.response.send_message(f"💖 Ship rate: **{random.randint(0,100)}%**")
+
+@tree.command(name="choose")
+async def choose(interaction: discord.Interaction, choices: str):
+    options = [c.strip() for c in choices.split(",")]
+    await interaction.response.send_message(f"🤔 I choose **{random.choice(options)}**")
+
+@tree.command(name="reverse")
+async def reverse(interaction: discord.Interaction, text: str):
+    await interaction.response.send_message(text[::-1])
+
+@tree.command(name="rate")
+async def rate(interaction: discord.Interaction, thing: str):
+    await interaction.response.send_message(f"⭐ **{thing}** is rated **{random.randint(0,10)}/10**")
+
+@app_commands.command(name="ship", description="Ship two users together 💖")
+async def ship(interaction: discord.Interaction, user1: discord.User, user2: discord.User):
+    ships = load_ships()
+    key = get_ship_key(user1.id, user2.id)
+
+    if key not in ships:
+        ships[key] = random.randint(0, 100)
+        save_ships(ships)
+
+    percent = ships[key]
+
+    if percent >= 80:
+        status = "💞 Perfect match!"
+    elif percent >= 50:
+        status = "💖 Looking good!"
+    elif percent >= 30:
+        status = "💔 Could work..."
+    else:
+        status = "💀 Uh oh..."
+
+    embed = discord.Embed(
+        title="💘 Ship Result",
+        description=f"❤️ **{percent}%** ❤️\n{status}",
+        color=discord.Color.pink()
     )
 
+    embed.add_field(name="👤 User 1", value=user1.mention, inline=True)
+    embed.add_field(name="👤 User 2", value=user2.mention, inline=True)
+
+    embed.set_thumbnail(url=user1.display_avatar.url)
+    embed.set_author(name=user2.name, icon_url=user2.display_avatar.url)
+    embed.set_footer(text="🧪 Ship scores are persistent")
+
+    await interaction.response.send_message(embed=embed)
+
+# --------------------
+# HELP COMMAND
+# --------------------
+@bot.command()
+async def help(ctx):
+    embed = discord.Embed(title="🤖 Bot Commands", color=discord.Color.blurple())
+
     embed.add_field(
-        name="🛡 Moderation",
-        value=(
-            "/warn <user> <reason>\n"
-            "/warnings <user>\n"
-            "/timeout <user> <minutes> <reason>\n"
-            "/kick <user> <reason>\n"
-            "/ban <user> <reason>\n"
-            "/clear <amount>"
-        ),
+        name="🎭 Actions",
+        value=", ".join(f"`/{a}`" for a in ACTIONS.keys()),
         inline=False
     )
 
     embed.add_field(
         name="🎮 Fun",
         value=(
-            "/ping\n"
-            "/coinflip\n"
-            "/roll\n"
-            "/8ball\n"
-            "/dice\n"
-            "/rps\n"
-            "/number\n"
-            "/joke\n"
-            "/roast\n"
-            "/ship\n"
-            "/hug\n"
-            "/slap\n"
-            "/choose\n"
-            "/reverse"
+            "`/ping` `/coinflip` `/roll` `/dice` `/8ball`\n"
+            "`/rps` `/number` `/joke` `/roast`\n"
+            "`/ship` `/choose` `/reverse` `/rate`"
         ),
         inline=False
     )
 
-    await interaction.response.send_message(embed=embed)
+    await ctx.send(embed=embed)
 
-# ================= MOD COMMANDS =================
-
-@tree.command(name="warn")
-@app_commands.checks.has_permissions(moderate_members=True)
-async def warn(interaction, member: discord.Member, reason: str):
-    add_warn(interaction.guild.id, member.id, reason)
-    await modlog(interaction.guild, discord.Embed(
-        title="⚠ Warn",
-        description=f"{member} warned\nReason: {reason}",
-        color=discord.Color.orange()
-    ))
-    await interaction.response.send_message(f"{member.mention} warned.")
-
-@tree.command(name="warnings")
-async def warnings(interaction, member: discord.Member):
-    warns_list = get_warns(interaction.guild.id, member.id)
-    msg = "\n".join(warns_list) or "No warnings."
-    await interaction.response.send_message(msg)
-
-@tree.command(name="timeout")
-@app_commands.checks.has_permissions(moderate_members=True)
-async def timeout(interaction, member: discord.Member, minutes: int, reason: str):
-    until = discord.utils.utcnow() + timedelta(minutes=minutes)
-    await member.timeout(until, reason=reason)
-    await modlog(interaction.guild, discord.Embed(
-        title="⏱ Timeout",
-        description=f"{member} timed out\n{reason}",
-        color=discord.Color.red()
-    ))
-    await interaction.response.send_message("Timed out.")
-
-@tree.command(name="clear")
-@app_commands.checks.has_permissions(manage_messages=True)
-async def clear(interaction, amount: int):
-    await interaction.channel.purge(limit=amount)
-    await interaction.response.send_message("Messages cleared.", ephemeral=True)
-
-@tree.command(name="kick")
-@app_commands.checks.has_permissions(kick_members=True)
-async def kick(interaction, member: discord.Member, reason: str):
-    await member.kick(reason=reason)
-    await modlog(interaction.guild, discord.Embed(
-        title="👢 Kick",
-        description=f"{member} kicked\n{reason}",
-        color=discord.Color.red()
-    ))
-    await interaction.response.send_message("Kicked.")
-
-@tree.command(name="ban")
-@app_commands.checks.has_permissions(ban_members=True)
-async def ban(interaction, member: discord.Member, reason: str):
-    await member.ban(reason=reason)
-    await modlog(interaction.guild, discord.Embed(
-        title="🔨 Ban",
-        description=f"{member} banned\n{reason}",
-        color=discord.Color.dark_red()
-    ))
-    await interaction.response.send_message("Banned.")
-
-# ================= FUN COMMANDS =================
-
-@tree.command(name="ping")
-async def ping(interaction):
-    await interaction.response.send_message(f"Pong! 🏓 {round(bot.latency * 1000)}ms")
-
-@tree.command(name="coinflip")
-async def coinflip(interaction):
-    await interaction.response.send_message(random.choice(["🪙 Heads", "🪙 Tails"]))
-
-@tree.command(name="roll")
-async def roll(interaction, sides: int = 6):
-    await interaction.response.send_message(f"🎲 Rolled: {random.randint(1, sides)}")
-
-@tree.command(name="8ball", description="Ask the magic 8-ball a question")
-async def eightball(interaction: discord.Interaction, question: str):
-    responses = [
-        # Positive
-        "Yes.",
-        "Absolutely!",
-        "Without a doubt.",
-        "Definitely.",
-        "You can count on it.",
-        "It is certain.",
-        "Most likely.",
-
-        # Neutral / Unsure
-        "Maybe...",
-        "Hard to say.",
-        "Ask again later.",
-        "Cannot predict now.",
-        "Better not tell you now.",
-        "Focus and ask again.",
-
-        # Negative
-        "No.",
-        "Absolutely not.",
-        "Don't count on it.",
-        "Very doubtful.",
-        "My sources say no.",
-        "Outlook not so good.",
-
-        # Funny / Extra
-        "💀 That's a bad idea.",
-        "The universe said nah.",
-        "Even I wouldn't try that.",
-        "Bro… no.",
-        "Yes but it will hurt."
-    ]
-
-    await interaction.response.send_message(
-        f"🎱 **Question:** {question}\n**Answer:** {random.choice(responses)}"
-    )
-
-# ================= MORE FUN COMMANDS =================
-
-@tree.command(name="dice")
-async def dice(interaction: discord.Interaction):
-    d1, d2 = random.randint(1, 6), random.randint(1, 6)
-    await interaction.response.send_message(f"🎲 You rolled **{d1}** and **{d2}**")
-
-@tree.command(name="rps")
-async def rps(interaction: discord.Interaction, choice: str):
-    options = ["rock", "paper", "scissors"]
-    choice = choice.lower()
-    if choice not in options:
-        await interaction.response.send_message("Choose rock, paper, or scissors.")
-        return
-    bot_choice = random.choice(options)
-    await interaction.response.send_message(f"🪨✂📄 You: **{choice}** | Bot: **{bot_choice}**")
-
-@tree.command(name="number")
-async def number(interaction: discord.Interaction, max: int = 100):
-    await interaction.response.send_message(f"🔢 Random number: **{random.randint(1, max)}**")
-
-@tree.command(name="roast")
-async def roast(interaction: discord.Interaction, member: discord.Member):
-    roasts = [
-        "is running on 2 brain cells 💀",
-        "thought this was Minecraft creative mode",
-        "has the confidence, not the skill",
-        "tried their best. It wasn’t enough."
-    ]
-    await interaction.response.send_message(f"🔥 {member.mention} {random.choice(roasts)}")
-
-@tree.command(name="joke")
-async def joke(interaction: discord.Interaction):
-    jokes = [
-        "Why don’t programmers like nature? Too many bugs.",
-        "I told my computer I needed a break… it froze.",
-        "Why did Python break up with Java? Too many classes."
-    ]
-    await interaction.response.send_message(f"😂 {random.choice(jokes)}")
-
-@tree.command(name="ship", description="Check the compatibility between two users 💖")
-async def ship(
-    interaction: discord.Interaction,
-    user1: discord.Member,
-    user2: discord.Member
-):
-    percent = random.randint(0, 100)
-
-    # Messages based on compatibility
-    if percent < 30:
-        message = "I think you'll be better off with someone else."
-        color = discord.Color.red()
-    elif percent < 60:
-        message = "Hmm… there *might* be something there."
-        color = discord.Color.orange()
-    elif percent < 85:
-        message = "Pretty good match! 👀💞"
-        color = discord.Color.pink()
-    else:
-        message = "SOULMATES CONFIRMED 💖🔥"
-        color = discord.Color.magenta()
-
-    embed = discord.Embed(
-        title="💘 Shipping Results",
-        description=(
-            f"❤️ **The name of the ship is** "
-            f"(**{user1.display_name[:3]}{user2.display_name[-3:]}**)\n\n"
-            f"❤️ **The compatibility is** **{percent}%**\n\n"
-            f"*{message}*"
-        ),
-        color=color
-    )
-
-    # Show avatars like the screenshot
-    embed.set_thumbnail(url=user1.display_avatar.url)
-    embed.set_image(url=user2.display_avatar.url)
-
-    embed.set_footer(
-        text=f"{user1.display_name} 💞 {user2.display_name}"
-    )
-
-    await interaction.response.send_message(embed=embed)
-
-@tree.command(name="hug", description="Give someone a hug 🤗")
-@app_commands.describe(member="The person you want to hug")
-async def hug(interaction: discord.Interaction, member: discord.Member):
-
-    hug_messages = [
-        "{user} wraps {target} in a big warm hug 🤗",
-        "{user} gives {target} the tightest hug ever 💖",
-        "{user} hugs {target} and never lets go 🫂",
-        "{user} softly hugs {target} ✨",
-    ]
-
-    hug_gifs = [
-        "https://media.giphy.com/media/od5H3PmEG5EVq/giphy.gif",
-        "https://media.giphy.com/media/lrr9rHuoJOE0w/giphy.gif",
-        "https://media.giphy.com/media/HaC1WdpkL3W00/giphy.gif",
-        "https://media.giphy.com/media/PHZ7v9tfQu0o0/giphy.gif",
-    ]
-
-    embed = discord.Embed(
-        description=random.choice(hug_messages).format(
-            user=interaction.user.mention,
-            target=member.mention
-        ),
-        color=discord.Color.pink()
-    )
-    embed.set_image(url=random.choice(hug_gifs))
-
-    await interaction.response.send_message(embed=embed)
-
-@tree.command(name="slap", description="Slap someone 👋")
-@app_commands.describe(member="The person you want to slap")
-async def slap(interaction: discord.Interaction, member: discord.Member):
-
-    slap_messages = [
-        "{user} slaps {target}! 👋",
-        "{user} gives {target} a gentle slap 😅",
-        "{user} absolutely destroys {target} with a slap 💥",
-        "{user} slaps {target} out of nowhere 😳",
-    ]
-
-    slap_gifs = [
-        "https://media.giphy.com/media/Gf3AUz3eBNbTW/giphy.gif",
-        "https://media.giphy.com/media/jLeyZWgtwgr2U/giphy.gif",
-        "https://media.giphy.com/media/mEtSQlxqBtWWA/giphy.gif",
-        "https://media.giphy.com/media/xT9DPJVjlYHwWsZRxm/giphy.gif",
-    ]
-
-    embed = discord.Embed(
-        description=random.choice(slap_messages).format(
-            user=interaction.user.mention,
-            target=member.mention
-        ),
-        color=discord.Color.red()
-    )
-    embed.set_image(url=random.choice(slap_gifs))
-
-    await interaction.response.send_message(embed=embed)
-
-@tree.command(name="choose")
-async def choose(interaction: discord.Interaction, options: str):
-    choices = [o.strip() for o in options.split(",")]
-    if len(choices) < 2:
-        await interaction.response.send_message("Provide at least 2 options separated by commas.")
-        return
-    await interaction.response.send_message(f"🤔 I choose: **{random.choice(choices)}**")
-
-@tree.command(name="reverse")
-async def reverse(interaction: discord.Interaction, text: str):
-    await interaction.response.send_message(text[::-1])
-
-@tree.command(name="say")
-@app_commands.checks.has_permissions(manage_messages=True)
-async def say(interaction: discord.Interaction, message: str):
-    await interaction.response.send_message(message)
-
-# ================= RUN =================
+# --------------------
+# READY
+# --------------------
+@bot.event
+async def on_ready():
+    await tree.sync()
+    print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
 
-
-
-
+bot.run(TOKEN)
