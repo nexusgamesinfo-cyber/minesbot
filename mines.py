@@ -369,10 +369,48 @@ async def joke(interaction: discord.Interaction):
     ]
     await interaction.response.send_message(f"😂 {random.choice(jokes)}")
 
-@tree.command(name="ship")
-async def ship(interaction: discord.Interaction, user1: discord.Member, user2: discord.Member):
+@tree.command(name="ship", description="Check the compatibility between two users 💖")
+async def ship(
+    interaction: discord.Interaction,
+    user1: discord.Member,
+    user2: discord.Member
+):
     percent = random.randint(0, 100)
-    await interaction.response.send_message(f"💘 {user1.mention} + {user2.mention} = **{percent}%** compatibility")
+
+    # Messages based on compatibility
+    if percent < 30:
+        message = "I think you'll be better off with someone else."
+        color = discord.Color.red()
+    elif percent < 60:
+        message = "Hmm… there *might* be something there."
+        color = discord.Color.orange()
+    elif percent < 85:
+        message = "Pretty good match! 👀💞"
+        color = discord.Color.pink()
+    else:
+        message = "SOULMATES CONFIRMED 💖🔥"
+        color = discord.Color.magenta()
+
+    embed = discord.Embed(
+        title="💘 Shipping Results",
+        description=(
+            f"❤️ **The name of the ship is** "
+            f"(**{user1.display_name[:3]}{user2.display_name[-3:]}**)\n\n"
+            f"❤️ **The compatibility is** **{percent}%**\n\n"
+            f"*{message}*"
+        ),
+        color=color
+    )
+
+    # Show avatars like the screenshot
+    embed.set_thumbnail(url=user1.display_avatar.url)
+    embed.set_image(url=user2.display_avatar.url)
+
+    embed.set_footer(
+        text=f"{user1.display_name} 💞 {user2.display_name}"
+    )
+
+    await interaction.response.send_message(embed=embed)
 
 @tree.command(name="hug")
 async def hug(interaction: discord.Interaction, member: discord.Member):
@@ -402,5 +440,6 @@ async def say(interaction: discord.Interaction, message: str):
 # ================= RUN =================
 
 bot.run(TOKEN)
+
 
 
