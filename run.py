@@ -243,10 +243,115 @@ async def coinflip(interaction):
 async def roll(interaction, sides: int = 6):
     await interaction.response.send_message(f"🎲 Rolled: {random.randint(1, sides)}")
 
-@tree.command(name="8ball")
-async def eightball(interaction, question: str):
-    responses = ["Yes", "No", "Maybe", "Definitely", "Absolutely not"]
-    await interaction.response.send_message(f"🎱 {random.choice(responses)}")
+@tree.command(name="8ball", description="Ask the magic 8-ball a question")
+async def eightball(interaction: discord.Interaction, question: str):
+    responses = [
+        # Positive
+        "Yes.",
+        "Absolutely!",
+        "Without a doubt.",
+        "Definitely.",
+        "You can count on it.",
+        "It is certain.",
+        "Most likely.",
+
+        # Neutral / Unsure
+        "Maybe...",
+        "Hard to say.",
+        "Ask again later.",
+        "Cannot predict now.",
+        "Better not tell you now.",
+        "Focus and ask again.",
+
+        # Negative
+        "No.",
+        "Absolutely not.",
+        "Don't count on it.",
+        "Very doubtful.",
+        "My sources say no.",
+        "Outlook not so good.",
+
+        # Funny / Extra
+        "💀 That's a bad idea.",
+        "The universe said nah.",
+        "Even I wouldn't try that.",
+        "Bro… no.",
+        "Yes but it will hurt."
+    ]
+
+    await interaction.response.send_message(
+        f"🎱 **Question:** {question}\n**Answer:** {random.choice(responses)}"
+    )
+
+# ================= MORE FUN COMMANDS =================
+
+@tree.command(name="dice")
+async def dice(interaction: discord.Interaction):
+    d1, d2 = random.randint(1, 6), random.randint(1, 6)
+    await interaction.response.send_message(f"🎲 You rolled **{d1}** and **{d2}**")
+
+@tree.command(name="rps")
+async def rps(interaction: discord.Interaction, choice: str):
+    options = ["rock", "paper", "scissors"]
+    choice = choice.lower()
+    if choice not in options:
+        await interaction.response.send_message("Choose rock, paper, or scissors.")
+        return
+    bot_choice = random.choice(options)
+    await interaction.response.send_message(f"🪨✂📄 You: **{choice}** | Bot: **{bot_choice}**")
+
+@tree.command(name="number")
+async def number(interaction: discord.Interaction, max: int = 100):
+    await interaction.response.send_message(f"🔢 Random number: **{random.randint(1, max)}**")
+
+@tree.command(name="roast")
+async def roast(interaction: discord.Interaction, member: discord.Member):
+    roasts = [
+        "is running on 2 brain cells 💀",
+        "thought this was Minecraft creative mode",
+        "has the confidence, not the skill",
+        "tried their best. It wasn’t enough."
+    ]
+    await interaction.response.send_message(f"🔥 {member.mention} {random.choice(roasts)}")
+
+@tree.command(name="joke")
+async def joke(interaction: discord.Interaction):
+    jokes = [
+        "Why don’t programmers like nature? Too many bugs.",
+        "I told my computer I needed a break… it froze.",
+        "Why did Python break up with Java? Too many classes."
+    ]
+    await interaction.response.send_message(f"😂 {random.choice(jokes)}")
+
+@tree.command(name="ship")
+async def ship(interaction: discord.Interaction, user1: discord.Member, user2: discord.Member):
+    percent = random.randint(0, 100)
+    await interaction.response.send_message(f"💘 {user1.mention} + {user2.mention} = **{percent}%** compatibility")
+
+@tree.command(name="hug")
+async def hug(interaction: discord.Interaction, member: discord.Member):
+    await interaction.response.send_message(f"🤗 {interaction.user.mention} hugs {member.mention}")
+
+@tree.command(name="slap")
+async def slap(interaction: discord.Interaction, member: discord.Member):
+    await interaction.response.send_message(f"👋 {interaction.user.mention} slapped {member.mention} (gently)")
+
+@tree.command(name="choose")
+async def choose(interaction: discord.Interaction, options: str):
+    choices = [o.strip() for o in options.split(",")]
+    if len(choices) < 2:
+        await interaction.response.send_message("Provide at least 2 options separated by commas.")
+        return
+    await interaction.response.send_message(f"🤔 I choose: **{random.choice(choices)}**")
+
+@tree.command(name="reverse")
+async def reverse(interaction: discord.Interaction, text: str):
+    await interaction.response.send_message(text[::-1])
+
+@tree.command(name="say")
+@app_commands.checks.has_permissions(manage_messages=True)
+async def say(interaction: discord.Interaction, message: str):
+    await interaction.response.send_message(message)
 
 # ================= RUN =================
 
