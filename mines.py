@@ -128,6 +128,14 @@ ACTIONS = {
     }
 }
 
+SHIP_IMAGES = [
+    "https://media.tenor.com/0AVbKGY_MxMAAAAC/anime-love.gif",
+    "https://media.tenor.com/Ct6J9Y6iJb8AAAAC/anime-hug.gif",
+    "https://media.tenor.com/7l3n6bYqJ6AAAAAC/anime-romance.gif",
+    "https://media.tenor.com/Yu7F8KQk0oUAAAAC/anime-kiss.gif",
+    "https://media.tenor.com/F8Z7qXxZ3S4AAAAC/anime-love.gif"
+]
+
 # --------------------
 # STORAGE
 # --------------------
@@ -336,38 +344,51 @@ async def roast(interaction: discord.Interaction, user: discord.User):
 
     await interaction.response.send_message(f"🔥 {user.mention} {random.choice(roasts)}")
 
-@tree.command(name="ship", description="Ship two users together 💖")
-async def ship(interaction: discord.Interaction, user1: discord.User, user2: discord.User):
-    ships = load_ships()
-    key = get_ship_key(user1.id, user2.id)
+@app_commands.command(name="ship", description="Ship two users ❤️")
+@app_commands.allowed_installs(guilds=True, users=True)
+async def ship(
+    interaction: discord.Interaction,
+    user1: discord.User,
+    user2: discord.User
+):
+    if user1.id == user2.id:
+        await interaction.response.send_message(
+            "💀 You can’t ship someone with themselves.",
+            ephemeral=True
+        )
+        return
 
-    if key not in ships:
-        ships[key] = random.randint(0, 100)
-        save_ships(ships)
+    score = random.randint(1, 100)
 
-    percent = ships[key]
-
-    if percent >= 80:
-        status = "💞 Perfect match!"
-    elif percent >= 50:
-        status = "💖 Looking good!"
-    elif percent >= 30:
-        status = "💔 Could work..."
+    if score >= 80:
+        comment = "Pretty good match! 👀💞"
+    elif score >= 50:
+        comment = "There’s something there 💗"
     else:
-        status = "💀 Uh oh..."
+        comment = "Hmm… maybe just friends 😬"
+
+    ship_name = user1.name[:len(user1.name)//2] + user2.name[len(user2.name)//2:]
 
     embed = discord.Embed(
-        title="💘 Ship Result",
-        description=f"❤️ **{percent}%** ❤️\n{status}",
-        color=discord.Color.pink()
+        title="💘 Shipping Results",
+        description=(
+            f"❤️ **The name of the ship**\n"
+            f"is **({ship_name})**\n\n"
+            f"❤️ **The compatibility is**\n"
+            f"**{score}%**\n\n"
+            f"*{comment}*"
+        ),
+        color=discord.Color.magenta()
     )
 
-    embed.add_field(name="👤 User 1", value=user1.mention, inline=True)
-    embed.add_field(name="👤 User 2", value=user2.mention, inline=True)
-
+    # small image (top-right)
     embed.set_thumbnail(url=user1.display_avatar.url)
-    embed.set_author(name=user2.name, icon_url=user2.display_avatar.url)
-    embed.set_footer(text="🧪 Ship scores are persistent")
+
+    # BIG anime image (bottom)
+    embed.set_image(url=random.choice(SHIP_IMAGES))
+
+    # footer
+    embed.set_footer(text=f"{user1.name} 💞 {user2.name}")
 
     await interaction.response.send_message(embed=embed)
 
@@ -428,6 +449,3 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
-
-
-
