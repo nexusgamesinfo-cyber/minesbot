@@ -6,4 +6,5 @@ echo "======================================"
 
 # Start the bot
 echo "Starting bot..."
-python run.py
+python mines.py
+
