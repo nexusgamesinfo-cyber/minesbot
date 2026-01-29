@@ -391,23 +391,26 @@ async def number(interaction: discord.Interaction):
 # --------------------
 # HELP COMMAND
 # --------------------
-@bot.command()
-async def help(ctx):
+@tree.command(name="help", description="Show all bot commands")
+async def help_cmd(interaction: discord.Interaction):
     embed = discord.Embed(title="🤖 Bot Commands", color=discord.Color.blurple())
 
     embed.add_field(
         name="🎭 Actions",
-        value=", ".join(f"`/{a}`" for a in ACTIONS.keys()),
+        value=", ".join(f"`/{a}`" for a in ACTIONS),
         inline=False
     )
 
     embed.add_field(
         name="🎮 Fun",
-        value="`/ping` `/coinflip` `/roll` `/dice` `/8ball` `/joke` `/roast` `/ship` `/choose` `/reverse` `/rate` `/number` `/rps`",
+        value=(
+            "`/ping` `/coinflip` `/roll` `/dice` `/8ball` `/joke` `/roast`\n"
+            "`/ship` `/choose` `/reverse` `/rate` `/number` `/rps`"
+        ),
         inline=False
     )
 
-    await ctx.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 # --------------------
 # READY
@@ -419,3 +422,4 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
+
