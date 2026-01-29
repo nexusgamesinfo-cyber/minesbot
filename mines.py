@@ -412,13 +412,63 @@ async def ship(
 
     await interaction.response.send_message(embed=embed)
 
-@tree.command(name="hug")
+@tree.command(name="hug", description="Give someone a hug 🤗")
+@app_commands.describe(member="The person you want to hug")
 async def hug(interaction: discord.Interaction, member: discord.Member):
-    await interaction.response.send_message(f"🤗 {interaction.user.mention} hugs {member.mention}")
 
-@tree.command(name="slap")
+    hug_messages = [
+        "{user} wraps {target} in a big warm hug 🤗",
+        "{user} gives {target} the tightest hug ever 💖",
+        "{user} hugs {target} and never lets go 🫂",
+        "{user} softly hugs {target} ✨",
+    ]
+
+    hug_gifs = [
+        "https://media.giphy.com/media/od5H3PmEG5EVq/giphy.gif",
+        "https://media.giphy.com/media/lrr9rHuoJOE0w/giphy.gif",
+        "https://media.giphy.com/media/HaC1WdpkL3W00/giphy.gif",
+        "https://media.giphy.com/media/PHZ7v9tfQu0o0/giphy.gif",
+    ]
+
+    embed = discord.Embed(
+        description=random.choice(hug_messages).format(
+            user=interaction.user.mention,
+            target=member.mention
+        ),
+        color=discord.Color.pink()
+    )
+    embed.set_image(url=random.choice(hug_gifs))
+
+    await interaction.response.send_message(embed=embed)
+
+@tree.command(name="slap", description="Slap someone 👋")
+@app_commands.describe(member="The person you want to slap")
 async def slap(interaction: discord.Interaction, member: discord.Member):
-    await interaction.response.send_message(f"👋 {interaction.user.mention} slapped {member.mention} (gently)")
+
+    slap_messages = [
+        "{user} slaps {target}! 👋",
+        "{user} gives {target} a gentle slap 😅",
+        "{user} absolutely destroys {target} with a slap 💥",
+        "{user} slaps {target} out of nowhere 😳",
+    ]
+
+    slap_gifs = [
+        "https://media.giphy.com/media/Gf3AUz3eBNbTW/giphy.gif",
+        "https://media.giphy.com/media/jLeyZWgtwgr2U/giphy.gif",
+        "https://media.giphy.com/media/mEtSQlxqBtWWA/giphy.gif",
+        "https://media.giphy.com/media/xT9DPJVjlYHwWsZRxm/giphy.gif",
+    ]
+
+    embed = discord.Embed(
+        description=random.choice(slap_messages).format(
+            user=interaction.user.mention,
+            target=member.mention
+        ),
+        color=discord.Color.red()
+    )
+    embed.set_image(url=random.choice(slap_gifs))
+
+    await interaction.response.send_message(embed=embed)
 
 @tree.command(name="choose")
 async def choose(interaction: discord.Interaction, options: str):
@@ -440,6 +490,7 @@ async def say(interaction: discord.Interaction, message: str):
 # ================= RUN =================
 
 bot.run(TOKEN)
+
 
 
 
