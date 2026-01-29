@@ -170,6 +170,52 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+# ================= HELP COMMAND =================
+
+@tree.command(name="help", description="Show all bot commands")
+async def help_cmd(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="📖 Bot Commands",
+        description="Here’s what I can do:",
+        color=discord.Color.blurple()
+    )
+
+    embed.add_field(
+        name="🛡 Moderation",
+        value=(
+            "/warn <user> <reason>\n"
+            "/warnings <user>\n"
+            "/timeout <user> <minutes> <reason>\n"
+            "/kick <user> <reason>\n"
+            "/ban <user> <reason>\n"
+            "/clear <amount>"
+        ),
+        inline=False
+    )
+
+    embed.add_field(
+        name="🎮 Fun",
+        value=(
+            "/ping\n"
+            "/coinflip\n"
+            "/roll\n"
+            "/8ball\n"
+            "/dice\n"
+            "/rps\n"
+            "/number\n"
+            "/joke\n"
+            "/roast\n"
+            "/ship\n"
+            "/hug\n"
+            "/slap\n"
+            "/choose\n"
+            "/reverse"
+        ),
+        inline=False
+    )
+
+    await interaction.response.send_message(embed=embed)
+
 # ================= MOD COMMANDS =================
 
 @tree.command(name="warn")
@@ -356,4 +402,5 @@ async def say(interaction: discord.Interaction, message: str):
 # ================= RUN =================
 
 bot.run(TOKEN)
+
 
