@@ -47,11 +47,11 @@ ACTIONS = {
         "emoji": "👉",
         "color": discord.Color.purple(),
         "gifs": [
-            "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-poke.gif",
-            "https://media.tenor.com/kK6v0Z7Yt0QAAAAC/poke-anime.gif",
-            "https://media.tenor.com/4uEw0G5ZK1QAAAAC/poke-cute.gif",
-            "https://media.tenor.com/y8Z0zXzX5N8AAAAC/anime-poke.gif",
-            "https://media.tenor.com/Lz1v9U7R8nQAAAAC/anime-poke.gif"
+            "https://media.tenor.com/Ct6J9Y6iJb8AAAAC/anime-poke.gif",
+            "https://media.tenor.com/7l3n6bYqJ6AAAAAC/anime-poke.gif",
+            "https://media.tenor.com/0GJYx2x8cK0AAAAC/anime-poke.gif",
+            "https://media.tenor.com/2mF6bZ9x8fUAAAAC/anime-poke.gif",
+            "https://media.tenor.com/x7yKZ9Z8AAAAC/anime-poke.gif"
         ]
     },
 
@@ -59,11 +59,11 @@ ACTIONS = {
         "emoji": "💋",
         "color": discord.Color.red(),
         "gifs": [
-            "https://media.tenor.com/0AVbKGY_MxMAAAAC/anime-kiss.gif",
-            "https://media.tenor.com/2VZ8sZkWbFQAAAAC/kiss-anime.gif",
-            "https://media.tenor.com/9KQK7XyZ7X0AAAAC/anime-kiss.gif",
-            "https://media.tenor.com/Yu7F8KQk0oUAAAAC/anime-kiss.gif",
-            "https://media.tenor.com/F8Z7qXxZ3S4AAAAC/anime-kiss.gif"
+            "https://media.tenor.com/Iqz7rj6N2W0AAAAC/anime-kiss.gif",
+            "https://media.tenor.com/LUo8GJcRzRoAAAAC/anime-kiss.gif",
+            "https://media.tenor.com/XFzZg5z5PqAAAAAC/anime-kiss.gif",
+            "https://media.tenor.com/9tPz8oH9dWgAAAAC/anime-kiss.gif",
+            "https://media.tenor.com/Fh1cZK9YkzAAAAAC/anime-kiss.gif"
         ]
     },
 
@@ -72,7 +72,7 @@ ACTIONS = {
         "color": discord.Color.green(),
         "gifs": [
             "https://media.tenor.com/2roX3uxz_68AAAAC/anime-head-pat.gif",
-            "https://media.tenor.com/FpF3X7XoH7UAAAAC/pat-anime.gif",
+            "https://media.tenor.com/FpF3X7XoH7UAAAAC/anime-pat.gif",
             "https://media.tenor.com/7l3n6bYqJ6AAAAAC/anime-pat.gif",
             "https://media.tenor.com/0GJYx2x8cK0AAAAC/anime-headpat.gif",
             "https://media.tenor.com/2mF6bZ9x8fUAAAAC/anime-pat.gif"
@@ -84,7 +84,7 @@ ACTIONS = {
         "color": discord.Color.orange(),
         "gifs": [
             "https://media.tenor.com/l1xTnYH9D7sAAAAC/anime-punch.gif",
-            "https://media.tenor.com/0vR2rjv4JkUAAAAC/punch-anime.gif",
+            "https://media.tenor.com/0vR2rjv4JkUAAAAC/anime-punch.gif",
             "https://media.tenor.com/Ws6Dm1ZWkWEAAAAC/anime-punch.gif",
             "https://media.tenor.com/4MGCj5x8gHAAAAAC/anime-punch.gif",
             "https://media.tenor.com/JG9m7cY2Zp8AAAAC/anime-punch.gif"
@@ -95,9 +95,9 @@ ACTIONS = {
         "emoji": "🦷",
         "color": discord.Color.dark_red(),
         "gifs": [
-            "https://media.tenor.com/1Yw3sPp5kYcAAAAC/anime-bite.gif",
-            "https://media.tenor.com/q8K5J5K0YgAAAAAC/anime-bite.gif",
-            "https://media.tenor.com/0m7X8bZ8sLAAAAAC/anime-bite.gif",
+            "https://media.tenor.com/RWJ3k2pH7zYAAAAC/anime-bite.gif",
+            "https://media.tenor.com/kY9fF6zV5FQAAAAC/anime-bite.gif",
+            "https://media.tenor.com/JrZz2o8A7k0AAAAC/anime-bite.gif",
             "https://media.tenor.com/5Zc8Z9Z9Z9AAAAC/anime-bite.gif",
             "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-bite.gif"
         ]
@@ -121,12 +121,13 @@ ACTIONS = {
         "gifs": [
             "https://media.tenor.com/Ws6Dm1ZWkWEAAAAC/anime-slap.gif",
             "https://media.tenor.com/4MGCj5x8gHAAAAAC/anime-slap.gif",
-            "https://media.tenor.com/5u3J1Y5nX0QAAAAC/slap-anime.gif",
+            "https://media.tenor.com/5u3J1Y5nX0QAAAAC/anime-slap.gif",
             "https://media.tenor.com/JG9m7cY2Zp8AAAAC/anime-slap.gif",
             "https://media.tenor.com/8n9m9gZyYgUAAAAC/anime-slap.gif"
         ]
     }
 }
+
 # --------------------
 # STORAGE
 # --------------------
@@ -427,5 +428,6 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
+
 
 
