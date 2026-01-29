@@ -15,7 +15,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="m;", intents=intents)
+bot = commands.Bot(command_prefix="m;", intents=intents, help_command=None)
 tree = bot.tree
 
 # --------------------
@@ -397,3 +397,4 @@ async def on_ready():
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
+
