@@ -4,6 +4,7 @@ from discord import app_commands
 import os
 import json
 import random
+import asyncio
 from dotenv import load_dotenv
 
 # --------------------
@@ -17,6 +18,26 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="m;", intents=intents, help_command=None)
 tree = bot.tree
+
+STATUSES = [
+    "/help for commands",
+    "🤗 Giving free hugs",
+    "👉 Poking responsibly",
+    "💖 Shipping users",
+    "🎮 Fun commands online"
+]
+
+async def status_rotator():
+    await bot.wait_until_ready()
+    i = 0
+    while not bot.is_closed():
+        activity = discord.CustomActivity(name=STATUSES[i])
+        await bot.change_presence(
+            status=discord.Status.online,
+            activity=activity
+        )
+        i = (i + 1) % len(STATUSES)
+        await asyncio.sleep(30)  # rotate every 30 seconds
 
 # --------------------
 # ACTION SYSTEM
@@ -393,8 +414,8 @@ async def help(ctx):
 # --------------------
 @bot.event
 async def on_ready():
+    bot.loop.create_task(status_rotator())
     await tree.sync()
     print(f"Logged in as {bot.user}")
 
 bot.run(TOKEN)
-
